@@ -1,6 +1,6 @@
 Gem::Specification.new do |s|
   s.name = 'polyrex-parser'
-  s.version = '0.2.5'
+  s.version = '0.2.6'
   s.summary = 'polyrex-parser'
   s.files = Dir['lib/**/*.rb']
   s.add_dependency('recordx-parser')

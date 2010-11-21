@@ -31,7 +31,8 @@ class PolyrexParser
       end
     }
 
-    root_name = s[/<(\w+)/,1]
+    root_name, raw_attributes = s.match(/<(\w+)(\s[^\/>]+)?/).captures
+    attributes = get_attributes(raw_attributes) if raw_attributes
 
     summary = RexleParser.new("<summary>#{s.fetch_summary}</summary>").to_a
 
@@ -46,7 +47,14 @@ class PolyrexParser
       records = record_threads.map{|x| x.join; x[:record]}
     end 
 
-    [root_name, "", {}, [*summary], ['records', "",{}, *records]]
+    [root_name, "", attributes, [*summary], ['records', "",{}, *records]]
   end
 
+  def get_attributes(raw_attributes)
+    raw_attributes.scan(/(\w+\='[^']+')|(\w+\="[^"]+")/).map(&:compact).flatten.inject({}) do |r, x|
+      attr_name, val = x.split(/=/) 
+      r.merge(attr_name => val[1..-2])
+    end
+  end  
+  
 end
