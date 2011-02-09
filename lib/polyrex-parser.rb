@@ -47,13 +47,13 @@ class PolyrexParser
       records = record_threads.map{|x| x.join; x[:record]}
     end 
 
-    [root_name, "", attributes, [*summary], ['records', "",{}, *records]]
+    [root_name, "", attributes ||= {}, [*summary], ['records', "",{}, *records]]
   end
 
   def get_attributes(raw_attributes)
     raw_attributes.scan(/(\w+\='[^']+')|(\w+\="[^"]+")/).map(&:compact).flatten.inject({}) do |r, x|
       attr_name, val = x.split(/=/) 
-      r.merge(attr_name => val[1..-2])
+      r.merge(attr_name.to_sym => val[1..-2])
     end
   end  
   
