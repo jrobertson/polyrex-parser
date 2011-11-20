@@ -53,7 +53,7 @@ class PolyrexParser
   def get_attributes(raw_attributes)
     raw_attributes.scan(/(\w+\='[^']+')|(\w+\="[^"]+")/).map(&:compact).flatten.inject({}) do |r, x|
       attr_name, val = x.split(/=/) 
-      r.merge(attr_name => val[1..-2])
+      r.merge(attr_name.to_sym => val[1..-2])
     end
   end  
   
