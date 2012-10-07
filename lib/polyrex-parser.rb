@@ -34,18 +34,26 @@ class PolyrexParser
   def parse(s)
     s.instance_eval{
       def fetch_summary()
-	name = 'summary'
-	self.slice(((self =~ /<#{name}>/) + name.length + 2) .. \
-	  (self =~ /<\/#{name}>/m) - 1) if self[/<#{name}>/]
-      end
-      def fetch_records()
-	name = 'records'
-	self.slice(((self =~ /<#{name}/) + name.length + 2) .. \
-	  (self.rindex(/<\/#{name}>/m)) - 1) if self[/<\/#{name}/]
+        name = 'summary'
+        self.slice(((self =~ /<#{name}>/) + name.length + 2) .. \
+          (self =~ /<\/#{name}>/m) - 1) if self[/<#{name}>/]
+            end
+            def fetch_records()
+        name = 'records'
+    
+        result = ''
+
+        if self[/<#{name}/] then
+          result = self.slice(((self =~ /<#{name}/) + name.length + 2) .. \
+            (self.rindex(/<\/#{name}>/m)) - 1) if self[/<\/#{name}/]
+        end
+        result
       end
     }
 
-    root_name, raw_attributes = s.match(/<(\w+)(\s[^\/>]+)?/).captures
+    result = s.match(/<(\w+)(\s[^\/>]+)?/)
+    root_name, raw_attributes = result.captures if result
+    puts 'result : '  + result.inspect
     attributes = get_attributes(raw_attributes) if raw_attributes
     raw_summary = s.fetch_summary
 
@@ -55,8 +63,9 @@ class PolyrexParser
     records = nil
 
 
-    if raw_records then
+    if raw_records and raw_records[/<\w+/] then
 
+      puts 'raw_records : ' + raw_records.inspect
       node_name = raw_records[/<(\w+)/,1]
 
       #record_threads = raw_records.strip.split(/(?=<#{node_name}[^>]*>)/).map do |x| 
@@ -65,15 +74,15 @@ class PolyrexParser
       i = 0
 
       while i < raw_records.strip.length do
-	i = scan_s(raw_records, node_name, i) + 1
-	a << i
+        i = scan_s(raw_records, node_name, i) + 1
+        a << i
       end
 
 
       record_threads = ([0] + a).each_cons(2).map do |s1, s2|
-	raw_s = raw_records[s1...s2]
+        raw_s = raw_records[s1...s2]
 
-	Thread.new{ Thread.current[:record] = parse(raw_s) }
+        Thread.new{ Thread.current[:record] = parse(raw_s) }
       end
       records = record_threads.map{|x| x.join; x[:record]}
 
@@ -94,9 +103,9 @@ class PolyrexParser
       scan_s(s, node_name, instances+1, i + r + l)
     else
       if instances > 1 then
-	scan_s(s, node_name, instances - 1, i + r + node_name.length + 3)
+        scan_s(s, node_name, instances - 1, i + r + node_name.length + 3)
       else
-	return i + r + node_name.length + 2
+        return i + r + node_name.length + 2
       end
     end
 
